@@ -535,7 +535,10 @@ func TestEncodeNil(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if bytes.Equal(buf, []byte("$-1\r\n")) == false {
+	// Redis has two kinds of nil object: "Null Bulk String" representing as
+	// "$-1\r\n" and "Null Array" representing as "*-1\r\n".
+	// The encode result of nil returns "-1\r\n" only.
+	if bytes.Equal(buf, []byte("-1\r\n")) == false {
 		t.Fatal(errTestFailed)
 	}
 }
@@ -890,4 +893,37 @@ func TestMarshalUnmarshalMessageArray(t *testing.T) {
 	if bytes.Equal(buf, []byte("*2\r\n$3\r\nget\r\n$7\r\nmessage\r\n")) == false {
 		t.Fatal(errTestFailed)
 	}
+}
+
+func TestMarshalUnmarshalMessageNil(t *testing.T) {
+	var err error
+	var buf []byte
+	var m *Message
+
+	// Test "Null Bulk String"
+	m = new(Message)
+	m.SetNil()
+	m.Type = BulkHeader
+
+	if buf, err = Marshal(m); err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(buf, []byte("$-1\r\n")) == false {
+		t.Fatal(errTestFailed)
+	}
+
+	// Test "Null Array String"
+	m = new(Message)
+	m.SetNil()
+	m.Type = ArrayHeader
+
+	if buf, err = Marshal(m); err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(buf, []byte("*-1\r\n")) == false {
+		t.Fatal(errTestFailed)
+	}
+
 }

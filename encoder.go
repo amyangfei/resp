@@ -29,7 +29,7 @@ import (
 const digitbuflen = 20
 
 var (
-	encoderNil = []byte("$-1\r\n")
+	encoderNil = []byte("-1\r\n")
 	digits     = []byte("0123456789")
 )
 
@@ -205,6 +205,10 @@ func (e *Encoder) writeEncoded(w io.Writer, data interface{}) (err error) {
 		case IntegerHeader:
 			return e.writeEncoded(w, int(v.Integer))
 		case BulkHeader:
+			if v.IsNil {
+				e.buf = append(e.buf, '$')
+				return e.writeEncoded(w, nil)
+			}
 			return e.writeEncoded(w, v.Bytes)
 		case StringHeader:
 			return e.writeEncoded(w, v.Status)
@@ -215,6 +219,11 @@ func (e *Encoder) writeEncoded(w io.Writer, data interface{}) (err error) {
 		}
 
 	case []*Message:
+		if len(v) == 0 {
+			e.buf = append(e.buf, '*')
+			return e.writeEncoded(w, nil)
+		}
+
 		n := intToBytes(len(v))
 
 		b = make([]byte, 0, 1+len(n)+2)
