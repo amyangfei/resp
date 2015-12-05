@@ -869,3 +869,25 @@ func TestEncoderAndDecoder(t *testing.T) {
 		t.Fatal(errTestFailed)
 	}
 }
+
+func TestMarshalUnmarshalMessageArray(t *testing.T) {
+	var err error
+	var buf []byte
+	var m, m1, m2 *Message
+
+	m = new(Message)
+	m1 = new(Message)
+	m2 = new(Message)
+
+	m1.SetBytes([]byte("get"))
+	m2.SetBytes([]byte("message"))
+	m.SetArray([]*Message{m1, m2})
+
+	if buf, err = Marshal(m); err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(buf, []byte("*2\r\n$3\r\nget\r\n$7\r\nmessage\r\n")) == false {
+		t.Fatal(errTestFailed)
+	}
+}

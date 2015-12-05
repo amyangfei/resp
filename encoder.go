@@ -214,6 +214,28 @@ func (e *Encoder) writeEncoded(w io.Writer, data interface{}) (err error) {
 			return ErrMissingMessageHeader
 		}
 
+	case []*Message:
+		n := intToBytes(len(v))
+
+		b = make([]byte, 0, 1+len(n)+2)
+		b = append(b, ArrayHeader)
+		b = append(b, n...)
+		b = append(b, endOfLine...)
+
+		e.buf = append(e.buf, b...)
+		b = make([]byte, 0)
+
+		if w != nil {
+			e.mu.Lock()
+			w.Write(e.buf)
+			e.buf = []byte{}
+			e.mu.Unlock()
+		}
+
+		for _, msg := range v {
+			e.writeEncoded(w, msg)
+		}
+
 	case nil:
 		b = make([]byte, 0, len(encoderNil))
 		b = append(b, encoderNil...)
