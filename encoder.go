@@ -213,17 +213,16 @@ func (e *Encoder) writeEncoded(w io.Writer, data interface{}) (err error) {
 		case StringHeader:
 			return e.writeEncoded(w, v.Status)
 		case ArrayHeader:
+			if v.IsNil {
+				e.buf = append(e.buf, '*')
+				return e.writeEncoded(w, nil)
+			}
 			return e.writeEncoded(w, v.Array)
 		default:
 			return ErrMissingMessageHeader
 		}
 
 	case []*Message:
-		if len(v) == 0 {
-			e.buf = append(e.buf, '*')
-			return e.writeEncoded(w, nil)
-		}
-
 		n := intToBytes(len(v))
 
 		b = make([]byte, 0, 1+len(n)+2)

@@ -925,5 +925,21 @@ func TestMarshalUnmarshalMessageNil(t *testing.T) {
 	if bytes.Equal(buf, []byte("*-1\r\n")) == false {
 		t.Fatal(errTestFailed)
 	}
+}
 
+func TestMarshalMessageZeroArray(t *testing.T) {
+	var err error
+	var buf []byte
+	var m *Message
+
+	m = new(Message)
+	m.SetArray([]*Message{})
+
+	if buf, err = Marshal(m); err != nil {
+		t.Fatal(err)
+	}
+
+	if bytes.Equal(buf, []byte("*0\r\n")) == false {
+		t.Fatal(errTestFailed)
+	}
 }
